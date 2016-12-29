@@ -166,21 +166,24 @@ void MainWindow::slotActivateSubWindow(){
 
 void MainWindow::slotAuthor(){
     QFont font("Times",11,QFont::Normal);
-    QTextEdit* label = new QTextEdit("",0);
+    QString link ="https://www.github.com/MendelVV/universalSurvey";
+    QTextBrowser* brouser = new QTextBrowser;
 
-    label->setFont(font);
-    label->setWindowTitle("О программе");
-    label->setEnabled(false);
-    QString str = "<center><font color='black' size='4'>Сбор анкетых данных 2.0.1.1</font></center>";
+    brouser->setFont(font);
+    brouser->setWindowTitle("О программе");
+    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.0.1.2</font></center>";
     str = str+"<p align='justify'><font color='black'>Приложение разработано Менделем В.В. на основе библиотеки QT (версия 5.5.1) и предназначено для offline "
                   "сбора данных о различного рода анкетированиях.";
-    str = str+"<br>Прилодения является приложением с открытым кодом с которым можно ознакомиться на <href='http://www.google.com'>";
+    str = str+"<br><br>Приложения относится к СПО. С исходным кодом можно ознакомиться на <a href='"+link+"'>GitHub</a>.";
     str=str+"<br><br>Контактная информация для сотрудничества по созданию анкет и обработке анкетных данных: ";
     str=str+"<br>E-mail:</font> <font color='blue'>mendel.vasilij@yandex.ru</font></p>";
-    str=str+"<center>2016 г. Версия 2.0.1.1</center>";
+    str=str+"<center>2016 г. Версия 2.0.1.2</center></div></body></html>";
+    brouser->setHtml(str);
+    brouser->setOpenExternalLinks(true);
 
-    label->insertHtml(str);
-    label->setFixedWidth(40*x);
-    label->resize(40*x,30*y);
-    label->show();
+//    lbl->setAlignment(Qt::AlignJustify);
+    brouser->setFixedWidth(40*x);
+    brouser->resize(40*x,30*y);
+    brouser->show();
+
 }
