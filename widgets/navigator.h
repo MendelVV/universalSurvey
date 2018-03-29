@@ -19,6 +19,7 @@ public:
     bool contains(ClassClass* cls);
     bool contains(StudentClass* stud);
 
+    int size();
 
 protected:
     int countItems;
@@ -32,6 +33,8 @@ protected:
 signals:
 
 public slots:
+    void slotSave();
+    void slotSaveAll();
     void slotRemove(SchoolClass*);
     void slotRemove(ClassClass*);
     void slotRemove(StudentClass*);

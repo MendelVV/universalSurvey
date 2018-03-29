@@ -2,10 +2,20 @@
 #include "widgets/mainwindow.h"
 #include "widgets/settingwidget.h"
 #include "styleclass.h"
+#include "keys_data/surveykeysclass.h"
+#include "json/jsonhelper.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QApplication::setStyle(new StyleClass);
+//    QApplication::setStyle(new StyleClass);
+    QFile styleFile(":/resource/style.qss");
+    if( styleFile.open(QFile::ReadOnly) ) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        qApp->setStyleSheet(styleSheet);
+    }else{
+        QApplication::setStyle(new StyleClass);
+    }
     QFont font("Times New Roman",8);
     int x = GetSystemMetrics(SM_CXSCREEN);
     if (x>3000){
@@ -22,6 +32,8 @@ int main(int argc, char *argv[])
 
     MainWindow mw;
     mw.showMaximized();
+
+
 
 //    SettingWidget* sw = new SettingWidget(new SettingClass("open"));
 //    sw->showMaximized();

@@ -6,6 +6,7 @@ SchoolWidget::SchoolWidget(SchoolClass* school, QWidget *parent) :
     sch = school;
     connect(sch,SIGNAL(signalActiveView()),this,SLOT(slotActivate()));
     connect(sch,SIGNAL(signalResizeStudent()),this,SLOT(slotRefresh()));
+    connect(sch,SIGNAL(signalSaveView()),this,SLOT(slotSave()));
     fileName = "";
 
     form = new FormPlusData;
@@ -17,18 +18,36 @@ SchoolWidget::SchoolWidget(SchoolClass* school, QWidget *parent) :
     lblTitle->setFont(font);
 
     typeOrg = sch->getSetting()->getTypeOrg().split(";")[1].trimmed().toLower();
-    cell = new CellPlusClass("lblSchoolNumber", "Label", "Название "+typeOrg, 0,0,11);
-    form->addCell(cell);
-    cell = new CellPlusClass("txtSchoolNumber", "Text", school->getNumber(), 0,1,11);
-    form->addCell(cell);
-    cell = new CellPlusClass("lblSchoolCode", "Label", "Код "+typeOrg, 0,2,11);
-    form->addCell(cell);
-    cell = new CellPlusClass("txtSchoolCode", "NumberInt", school->getCode(), 0,3,11);
-    form->addCell(cell);
-    QString typeGr = sch->getSetting()->getTypeGr().split(";")[3].trimmed().toLower();
-    cell = new CellPlusClass("lblClassList", "Label", "Список "+typeGr, 1,0,22);
-    cell->setMergeColumn(2);
-    form->addCell(cell);
+    if (sch->getSetting()->getOtherSetting("onlyselectschool")=="да"){
+        cell = new CellPlusClass("butSelectSchool", "Button", "Выбрать из списка", 0,0,11);
+        connect(cell,SIGNAL(signalPress()),this,SLOT(slotSelectSchool()));
+        form->addCell(cell);
+//        cell = new CellPlusClass("lblSchoolCode", "Label", "Код и название "+typeOrg, 0,1,11);
+//        form->addCell(cell);
+        cell = new CellPlusClass("txtSchoolNumber", "Label", school->getNumber(), 0,1,22);
+        cell->setMergeColumn(2);
+        form->addCell(cell);
+        cell = new CellPlusClass("txtSchoolCode", "Label", school->getCode(), 0,3,11);
+        form->addCell(cell);
+        QString typeGr = sch->getSetting()->getTypeGr().split(";")[3].trimmed().toLower();
+        cell = new CellPlusClass("lblClassList", "Label", "Список "+typeGr, 1,0,22);
+        cell->setMergeColumn(2);
+        form->addCell(cell);
+    }else{
+        cell = new CellPlusClass("lblSchoolNumber", "Label", "Название "+typeOrg, 0,0,11);
+        form->addCell(cell);
+        cell = new CellPlusClass("txtSchoolNumber", "Text", school->getNumber(), 0,1,11);
+        form->addCell(cell);
+        cell = new CellPlusClass("lblSchoolCode", "Label", "Код "+typeOrg, 0,2,11);
+        form->addCell(cell);
+        cell = new CellPlusClass("txtSchoolCode", "NumberInt", school->getCode(), 0,3,11);
+        form->addCell(cell);
+        QString typeGr = sch->getSetting()->getTypeGr().split(";")[3].trimmed().toLower();
+        cell = new CellPlusClass("lblClassList", "Label", "Список "+typeGr, 1,0,22);
+        cell->setMergeColumn(2);
+        form->addCell(cell);
+    }
+
 
 
     LayoutToForm* ltf = new LayoutToForm;
@@ -52,12 +71,19 @@ SchoolWidget::SchoolWidget(SchoolClass* school, QWidget *parent) :
     wgt->setLayout(layout);
     QScrollArea* sc = new QScrollArea;
     sc->setWidget(wgt);
+
+    QPalette palMain;
+    QColor color(255, 255, 255);
+    palMain.setColor(QPalette::Background,color);
+    setPalette(palMain);
+
     setCentralWidget(sc);
 
     QMenu* menu = new QMenu("&Меню");
     setMainMenu();
     menu->addAction(actSave);
     menu->addAction(actSaveAs);
+    menu->addAction(actSaveOther);
     menu->addSeparator();
     menu->addAction(actToXML);
     menu->addSeparator();
@@ -69,6 +95,7 @@ SchoolWidget::SchoolWidget(SchoolClass* school, QWidget *parent) :
     setPropertyMenu();
     menuProperty->addAction(actAddClass);
     menuBar()->addMenu(menuProperty);
+
 }
 
 SchoolWidget::~SchoolWidget(){
@@ -86,11 +113,16 @@ void SchoolWidget::setMainMenu(){
     actSaveAs = new QAction("Сохранить как",0);
     connect(actSaveAs,SIGNAL(triggered()),this,SLOT(slotSaveAs()));
 
+    actSaveOther = new QAction("Сохранить иначе",0);
+    connect(actSaveOther,SIGNAL(triggered()),this,SLOT(slotSaveOther()));
+
     actToXML = new QAction("Конвертировать в XML",0);
     connect(actToXML,SIGNAL(triggered()),this,SLOT(slotToXML()));
 
     actExit = new QAction("Выйти",0);
     connect(actExit,SIGNAL(triggered()),this,SLOT(slotClose()));
+
+
 }
 
 void SchoolWidget::setPropertyMenu(){
@@ -99,7 +131,22 @@ void SchoolWidget::setPropertyMenu(){
     connect(actAddClass,SIGNAL(triggered()),this,SLOT(slotAddClass()));
 }
 
+QString SchoolWidget::getFileName(){
+    QString str=sch->getNumber()+"_"+sch->getCode();
+    QVector<ClassClass*> vecCls = sch->getAllClasses();
+    int n = vecCls.count();
+    for (int i=0; i<n;i++){
+        ClassClass* cls = vecCls[i];
+        if (cls->getCode()!=""){
+            str=str+"_"+cls->getCode();
+        }
+    }
+    str=str+".scpd";//system for collection personal data
+    return str;
+}
+
 void SchoolWidget::slotOpenClass(ClassClass *cls){
+    slotSave();
     emit signalOpenClass(cls);
 }
 
@@ -107,7 +154,12 @@ void SchoolWidget::slotClose(){
     emit closed();
 }
 
+void SchoolWidget::slotSaveSignal(){
+    emit signalSave();
+}
+
 void SchoolWidget::slotSave(){
+    emit signalSave();
     SettingClass* setting = sch->getSetting();
     QString code =  form->getCell("txtSchoolCode")->getValue();
     if (form->getCell("txtSchoolNumber")->getValue()!="" && code!=""){//если поставлен код и название
@@ -121,9 +173,17 @@ void SchoolWidget::slotSave(){
             return;
         }
         if (fileName!=""){
+            QStringList lst = fileName.split("/");
+            lst.removeLast();
+            lst<<getFileName();
+            QString str = lst.join("/");
             sch->setCode(form->getCell("txtSchoolCode")->getValue());
             sch->setNumber(form->getCell("txtSchoolNumber")->getValue());
             sch->saveSchoolClass(fileName);
+            if (fileName!=str){
+                QFile::rename(fileName,str);
+                fileName = str;
+            }
             activateWindow();
         }else{
             slotSaveAs();
@@ -158,35 +218,56 @@ void SchoolWidget::slotSaveAs(){
 
             sch->setCode(code);
             sch->setNumber(form->getCell("txtSchoolNumber")->getValue());
-            str=str+"/"+sch->getNumber()+"_"+sch->getCode();
-            QVector<ClassClass*> vecCls = sch->getAllClasses();
-            int n = vecCls.count();
-            for (int i=0; i<n;i++){
-                ClassClass* cls = vecCls[i];
-                if (cls->getCode()!=""){
-                    str=str+"_"+cls->getCode();
-                }else{
-                    b=false;
-                }
-            }
-            str=str+".scpd";//system for collection personal data
+            str=str+"/"+getFileName();//"/"+sch->getNumber()+"_"+sch->getCode();
         }
-        if (b){
-            if (sch->saveSchoolClass(str)){
-                fileName=str;
-                activateWindow();
-            }else{
-                QString typeOrg = sch->getSetting()->getTypeOrg().split(";")[1].trimmed().toLower();
-                QMessageBox* msb = new QMessageBox;
-                msb->setWindowTitle("Ошибка");
-                msb->setText("Невозможно сохранить файл! Название "+typeOrg+" содержит недопустимые символы - \\/\"<>:; или др.!");
-                msb->show();
-            }
+        if (sch->saveSchoolClass(str)){
+            fileName=str;
+            activateWindow();
         }else{
-            QString typeGr = sch->getSetting()->getTypeGr().split(";")[3].trimmed().toLower();
+            QString typeOrg = sch->getSetting()->getTypeOrg().split(";")[1].trimmed().toLower();
             QMessageBox* msb = new QMessageBox;
             msb->setWindowTitle("Ошибка");
-            msb->setText("Невозможно сохранить без указания всех кодов "+typeGr+".");
+            msb->setText("Невозможно сохранить файл! Название "+typeOrg+" содержит недопустимые символы - \\/\"<>:; или др.!");
+            msb->show();
+        }
+    }else{
+        QMessageBox* msb = new QMessageBox;
+        msb->setWindowTitle("Ошибка");
+        msb->setText("Невозможно сохранить без названия и кода организации.");
+        msb->show();
+    }
+}
+
+void SchoolWidget::slotSaveOther(){
+    SettingClass* setting = sch->getSetting();
+    if (form->getCell("txtSchoolNumber")->getValue()!="" && form->getCell("txtSchoolNumber")->getValue()!=""){//если поставлен код и название
+ //       QFileDialog* openD = new QFileDialog(this);
+        QString str = QFileDialog::getSaveFileName(this,"Сохранение файла");
+        //QString str = QFileDialog::getExistingDirectory(this, "Выберите дирректорию для сохранения");
+        bool b = true;
+        if (str!=""){
+            QString code = form->getCell("txtSchoolCode")->getValue();
+            int sz = setting->getOtherSetting("szorgcode").toInt();
+            if (sz>0 && code.length()!=sz){
+                QMessageBox* msb = new QMessageBox(this);
+                msb->setWindowTitle("Ошибка");
+                QString typeOrg = setting->getTypeOrg().split(";")[1];
+                msb->setText("Количество символов в коде "+typeOrg+" должно равняться "+setting->getOtherSetting("szorgcode")+"!");
+                msb->show();
+                return;
+            }
+
+            sch->setCode(code);
+            sch->setNumber(form->getCell("txtSchoolNumber")->getValue());
+        }
+        if (sch->saveSchoolClass(str)){
+            fileName=str;
+            activateWindow();
+        }else{
+            QString typeOrg = sch->getSetting()->getTypeOrg().split(";")[1].trimmed().toLower();
+            QMessageBox* msb = new QMessageBox;
+            msb->setWindowTitle("Ошибка");
+            msb->setText("Невозможно сохранить файл! Название "+typeOrg+" содержит недопустимые символы - \\/\"<>:; или др.!");
             msb->show();
         }
     }else{
@@ -222,6 +303,13 @@ void SchoolWidget::slotRefresh(){
 }
 
 void SchoolWidget::slotAddClass(){
+    if (fileName==""){
+        QMessageBox* msb = new QMessageBox;
+        msb->setWindowTitle("Внимание!");
+        msb->setText("Для продолжения необходимо сохранить!");
+        msb->show();
+        return;
+    }
     QString typeGr = sch->getSetting()->getTypeGr().split(";")[1].trimmed().toLower();
     DialogAddClass* dlg = new DialogAddClass(typeGr,sch->getSetting());
     if (dlg->exec()==QDialog::Accepted){
@@ -249,4 +337,24 @@ void SchoolWidget::slotRemoveClass(){
 
 void SchoolWidget::slotActivate(){
     emit signalActivate();
+}
+
+void SchoolWidget::slotSelectSchool(){
+    QVector<QVector<QString> > vecData = DbHelper::getSchoolsList();//код, название
+    DialogSelectOnTable* dlg = new DialogSelectOnTable(vecData,QStringList()<<"Код"<<"Название", QVector<double>()<<30<<60);
+    if (dlg->exec()==QDialog::Accepted){
+        QVector<QString> vec = dlg->getValue();
+        if (vec.size()<2){
+            delete dlg;
+            return;
+        }
+        QRegExp reg("[/\\\\|\"\*:?<>]");
+        QString str = vec[1].replace(reg,"");
+        form->getCell("txtSchoolCode")->setValue(vec[0]);
+        form->getCell("txtSchoolNumber")->setValue(str);
+        form->getCell("txtSchoolCode")->changeValueWidget();
+        form->getCell("txtSchoolNumber")->changeValueWidget();
+        //qDebug()<<vec;
+    }
+    delete dlg;
 }

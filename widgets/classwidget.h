@@ -7,9 +7,15 @@
 #include "tablestudentwidget.h"
 #include "dialogs\dialogaddstudent.h"
 #include "dialogs\dialogyousure.h"
+#include "tableformwidget.h"
 #include "tableformdata.h"
 #include "scrollwidget.h"
 #include "settingclass.h"
+#include "excel_main/excel.h"
+#include "excelfunction.h"
+#include "dialogs/dialogselectonlist.h"
+#include "keys/keyhelper.h"
+#include "dialogs/errormessage.h"
 
 class ClassWidget : public QMainWindow
 {
@@ -33,6 +39,8 @@ protected:
     QAction* actSave;
     QAction* actAddStudent;
     QAction* actClose;
+    QAction* actToExcel;
+    QAction* actResults;
     void setActMenu();
 
     QAction* actAddMainForm;
@@ -45,6 +53,7 @@ protected:
 
     void setForm(QString str);
     void setFormClassed(QString str);
+
 signals:
     void closed();
     void signalOpenStudent(StudentClass*);
@@ -65,8 +74,13 @@ public slots:
 
     void slotAddForm();
 
+    void slotSaveThis();
     void slotSave();
     void slotDulicate(QString);
+
+    void slotToExcel();
+    void slotToExcelWindows();
+    void slotResults();
 };
 
 #endif // CLASSWIDGET_H

@@ -6,6 +6,7 @@
 #include "studentwidget.h"
 #include "navigator.h"
 #include "settingclass.h"
+#include "dialogs/dialogclose.h"
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +27,7 @@ protected:
     QAction* actAuthor;
 
     void setActMenu();
+    void closeEvent(QCloseEvent *);
 
 signals:
     void signalSave();

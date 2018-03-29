@@ -59,6 +59,23 @@ void MainWindow::setActMenu(){
     connect(actAuthor,SIGNAL(triggered(bool)),this,SLOT(slotAuthor()));
 }
 
+void MainWindow::closeEvent(QCloseEvent *ev){
+    if (nav->size()==0){
+        ev->accept();
+        return;
+    }
+    ev->ignore();
+    DialogClose* dlg = new DialogClose;
+    if (dlg->exec()==QDialog::Accepted){
+        if (dlg->mSave){
+            nav->slotSaveAll();
+        }
+        ev->accept();
+    }
+    delete dlg;
+
+}
+
 void MainWindow::slotSave(){
     emit signalSave();
 }
@@ -74,6 +91,7 @@ void MainWindow::slotCreateSchool(){
     connect(swgt,SIGNAL(signalOpenClass(ClassClass*)),this,SLOT(slotOpenClass(ClassClass*)));
     connect(swgt,SIGNAL(signalActivate()),this,SLOT(slotActivateSubWindow()));
     connect(this,SIGNAL(signalSave()),swgt,SLOT(slotSave()));
+    connect(swgt,SIGNAL(signalSave()),nav,SLOT(slotSave()));
     nav->addItem(sch);
 }
 
@@ -103,7 +121,10 @@ void MainWindow::slotOpen(){
         sch->readSchoolClass(str);
         SchoolWidget* swgt = new SchoolWidget(sch);
         swgt->fileName=str;
-        mdiArea->addSubWindow(swgt);
+
+        QMdiSubWindow* subw = mdiArea->addSubWindow(swgt);
+        subw->setWindowFlags(Qt::FramelessWindowHint);
+
         swgt->showMaximized();
         activateWindow();
     //соединяем со слотом, чтобы при закрытии закрывалось все
@@ -111,6 +132,7 @@ void MainWindow::slotOpen(){
         connect(swgt,SIGNAL(signalOpenClass(ClassClass*)),this,SLOT(slotOpenClass(ClassClass*)));
         connect(swgt,SIGNAL(signalActivate()),this,SLOT(slotActivateSubWindow()));
         connect(this,SIGNAL(signalSave()),swgt,SLOT(slotSave()));
+        connect(swgt,SIGNAL(signalSave()),nav,SLOT(slotSave()));
         nav->addItem(sch);
     }
 }
@@ -131,6 +153,7 @@ void MainWindow::slotOpenXML(){
         connect(swgt,SIGNAL(signalOpenClass(ClassClass*)),this,SLOT(slotOpenClass(ClassClass*)));
         connect(swgt,SIGNAL(signalActivate()),this,SLOT(slotActivateSubWindow()));
         connect(this,SIGNAL(signalSave()),swgt,SLOT(slotSave()));
+        connect(swgt,SIGNAL(signalSave()),nav,SLOT(slotSave()));
         nav->addItem(sch);
     }
 }
@@ -171,13 +194,13 @@ void MainWindow::slotAuthor(){
 
     brouser->setFont(font);
     brouser->setWindowTitle("О программе");
-    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.0.1.2</font></center>";
+    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.1.2.5</font></center>";
     str = str+"<p align='justify'><font color='black'>Приложение разработано Менделем В.В. на основе библиотеки QT (версия 5.5.1) и предназначено для offline "
                   "сбора данных о различного рода анкетированиях.";
     str = str+"<br><br>Приложения относится к СПО. С исходным кодом можно ознакомиться на <a href='"+link+"'>GitHub</a>.";
     str=str+"<br><br>Контактная информация для сотрудничества по созданию анкет и обработке анкетных данных: ";
     str=str+"<br>E-mail:</font> <font color='blue'>mendel.vasilij@yandex.ru</font></p>";
-    str=str+"<center>2016 г. Версия 2.0.1.2</center></div></body></html>";
+    str=str+"<center>2017 г. Версия 2.1.2.5</center></div></body></html>";
     brouser->setHtml(str);
     brouser->setOpenExternalLinks(true);
 

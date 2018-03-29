@@ -6,6 +6,8 @@
 #include "schoolclass.h"
 #include "tableclasswidget.h"
 #include "dialogs\dialogaddclass.h"
+#include "database/dbhelper.h"
+#include "dialogs/dialogselectontable.h"
 
 class SchoolWidget : public QMainWindow
 {
@@ -22,6 +24,7 @@ protected:
 
     QAction* actSave;
     QAction* actSaveAs;
+    QAction* actSaveOther;
     QAction* actToXML;
     QAction* actExit;
     void setMainMenu();
@@ -29,22 +32,26 @@ protected:
     QAction* actAddClass;
     void setPropertyMenu();
 
+    QString getFileName();
 signals:
     void closed();
+    void signalSave();
     void signalOpenClass(ClassClass*);
     void signalActivate();
 public slots:
+    void slotSaveSignal();
     void slotOpenClass(ClassClass*);
     void slotClose();
     void slotSave();
     void slotSaveAs();
+    void slotSaveOther();
     void slotToXML();
     void slotRefresh();
 
     void slotAddClass();
     void slotRemoveClass();
     void slotActivate();
-
+    void slotSelectSchool();
 };
 
 #endif // SCHOOLWIDGET_H

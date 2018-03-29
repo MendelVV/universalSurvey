@@ -17,6 +17,10 @@ bool Navigator::contains(StudentClass* stud){
     return listStud.contains(stud);
 }
 
+int Navigator::size(){
+    return listSch.size()+listCls.size()+listStud.size();
+}
+
 void Navigator::addItem(SchoolClass* sch){
     double y =((double)GetSystemMetrics(SM_CYSCREEN))/100;
     QLinearGradient gradient(0,0,0,5*y);//(0, 0, 0, opt->rect.height());
@@ -35,7 +39,6 @@ void Navigator::addItem(SchoolClass* sch){
     setItemWidget(item,mv);
 //соединяем сигнал закрытия школы с удалением из навигатора
     connect(sch,SIGNAL(closedView(SchoolClass*)),this,SLOT(slotRemove(SchoolClass*)));
-
     countItems++;
 }
 
@@ -80,6 +83,34 @@ void Navigator::addItem(StudentClass* stud){
     connect(stud,SIGNAL(closedView(StudentClass*)),this,SLOT(slotRemove(StudentClass*)));
 
     countItems++;
+}
+
+void Navigator::slotSave(){
+    qDebug()<<"navigator save";
+    foreach (StudentClass* stud, listStud){
+        stud->signalSaveView();
+    }
+    foreach (ClassClass* cls, listCls) {
+        cls->signalSaveView();
+    }
+
+//    foreach (SchoolClass* sch, listSch) {
+//        sch->signalSaveView();
+//    }
+}
+
+void Navigator::slotSaveAll(){
+    qDebug()<<"navigator save all";
+    foreach (StudentClass* stud, listStud){
+        stud->signalSaveView();
+    }
+    foreach (ClassClass* cls, listCls) {
+        cls->signalSaveView();
+    }
+
+    foreach (SchoolClass* sch, listSch) {
+        sch->signalSaveView();
+    }
 }
 
 void Navigator::slotRemove(SchoolClass* sch){

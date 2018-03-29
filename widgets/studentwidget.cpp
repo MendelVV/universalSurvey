@@ -5,7 +5,7 @@ StudentWidget::StudentWidget(StudentClass* student, QWidget *parent) :
 {
     stud = student;
     connect(stud,SIGNAL(signalActiveView()),this,SLOT(slotActivate()));
-
+    connect(stud,SIGNAL(signalSaveView()),this,SLOT(slotSave()));
     setForms();
 
     setActMenu();
@@ -99,7 +99,7 @@ void StudentWidget::closeEvent(QCloseEvent *ce){
 
 void StudentWidget::setActMenu(){
     actSave = new QAction("Сохранить",0);
-    connect(actSave, SIGNAL(triggered()),this,SLOT(slotSave()));
+    connect(actSave, SIGNAL(triggered()),this,SLOT(slotSaveThis()));
 
     actClose = new QAction("Закрыть без сохранения",0);
     connect(actClose,SIGNAL(triggered()),this,SLOT(slotClose()));
@@ -146,13 +146,19 @@ void StudentWidget::slotClose(){
 }
 
 void StudentWidget::slotSaveAndClose(){
-    slotSave();
+    slotSaveThis();
     slotClose();
     stud->closedView(stud);
 }
 
 void StudentWidget::slotActivate(){
     emit signalActivate();
+}
+
+void StudentWidget::slotSaveThis(){
+    slotSave();
+    emit signalSave();
+
 }
 
 void StudentWidget::slotSave(){
@@ -202,6 +208,5 @@ void StudentWidget::slotSave(){
             }
         }
     }
-    emit signalSave();
 }
 

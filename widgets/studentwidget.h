@@ -34,7 +34,7 @@ public slots:
     void slotClose();
     void slotSaveAndClose();
     void slotActivate();
-
+    void slotSaveThis();
     void slotSave();
 };
 
