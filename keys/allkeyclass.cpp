@@ -106,7 +106,7 @@ QString AllKeyClass::getLevel(StudentClass* stud){
             }
             QStringList lstCount = map["countv"].split("-");
             if (lstCount.count()!=2){
-                qDebug()<<"not 2";
+                qWarning()<<"not 2";
                 b=false;
                 break;
             }

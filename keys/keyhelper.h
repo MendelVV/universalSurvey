@@ -25,7 +25,12 @@ public:
     static void createAllCharacters(ClassClass* cls, QVector<SurveyKeysClass*> vecSurvs);
 
     static void createPdf(ClassClass* cls, QVector<SurveyKeysClass*> vecSurvs);
+    static void createOnePdfOld(ClassClass* cls, SurveyKeysClass* surv);
     static void createOnePdf(ClassClass* cls, SurveyKeysClass* surv);
+    static QVector<QVector<QString> > getDataForTable(ClassClass* cls, SurveyKeysClass* surv,AllKeyClass* allKeys, ResultsData* results);
+protected:
+    static void createNextPage(QPdfWriter* writer, QPainter* painter, int page, ResultsData* results, ClassClass* cls, QVector<QVector<QString> > vecData);
+
 };
 
 #endif // KEYHELPER_H

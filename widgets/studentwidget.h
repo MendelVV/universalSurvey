@@ -14,6 +14,7 @@ public:
     FormPlusData* form;
     StudentClass* stud;
 protected:
+    QTabWidget* mTab;
     void setForms();//задаем формы любые. вход, выход, просто
     virtual void closeEvent(QCloseEvent *);
     QMap<QString, FormPlusData*> mapForm;
@@ -25,12 +26,15 @@ protected:
     void setActMenu();
 
     void setForm(QString);
-
+    QMap<QString, QWidget*> mMapWgt;
+    QMap<QString, int> mMapWgtPos;
+    QVector<QWidget*> mVecEmpty;
 signals:
     void closed();
     void signalActivate();
     void signalSave();
 public slots:
+    void slotShow(int n);
     void slotClose();
     void slotSaveAndClose();
     void slotActivate();

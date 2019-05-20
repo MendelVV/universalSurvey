@@ -8,7 +8,6 @@ SchoolWidget::SchoolWidget(SchoolClass* school, QWidget *parent) :
     connect(sch,SIGNAL(signalResizeStudent()),this,SLOT(slotRefresh()));
     connect(sch,SIGNAL(signalSaveView()),this,SLOT(slotSave()));
     fileName = "";
-
     form = new FormPlusData;
     CellPlusClass* cell;
     QFont font("Times",14,QFont::Normal);
@@ -122,7 +121,6 @@ void SchoolWidget::setMainMenu(){
     actExit = new QAction("Выйти",0);
     connect(actExit,SIGNAL(triggered()),this,SLOT(slotClose()));
 
-
 }
 
 void SchoolWidget::setPropertyMenu(){
@@ -132,7 +130,7 @@ void SchoolWidget::setPropertyMenu(){
 }
 
 QString SchoolWidget::getFileName(){
-    QString str=sch->getNumber()+"_"+sch->getCode();
+    QString str=sch->getCode();
     QVector<ClassClass*> vecCls = sch->getAllClasses();
     int n = vecCls.count();
     for (int i=0; i<n;i++){
@@ -354,7 +352,6 @@ void SchoolWidget::slotSelectSchool(){
         form->getCell("txtSchoolNumber")->setValue(str);
         form->getCell("txtSchoolCode")->changeValueWidget();
         form->getCell("txtSchoolNumber")->changeValueWidget();
-        //qDebug()<<vec;
     }
     delete dlg;
 }

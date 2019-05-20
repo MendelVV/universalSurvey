@@ -93,6 +93,7 @@ void MainWindow::slotCreateSchool(){
     connect(this,SIGNAL(signalSave()),swgt,SLOT(slotSave()));
     connect(swgt,SIGNAL(signalSave()),nav,SLOT(slotSave()));
     nav->addItem(sch);
+
 }
 
 void MainWindow::slotOpenClass(ClassClass *cls){
@@ -176,7 +177,6 @@ void MainWindow::slotOpenStudent(StudentClass *stud){
 void MainWindow::slotCloseSubWindow(){
     mdiArea->closeActiveSubWindow();
 
-
     mdiArea->activatePreviousSubWindow();
     QWidget* pview = (QWidget*) sender()->parent();
     delete pview;
@@ -194,13 +194,13 @@ void MainWindow::slotAuthor(){
 
     brouser->setFont(font);
     brouser->setWindowTitle("О программе");
-    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.1.2.5</font></center>";
+    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.2.1.0</font></center>";
     str = str+"<p align='justify'><font color='black'>Приложение разработано Менделем В.В. на основе библиотеки QT (версия 5.5.1) и предназначено для offline "
                   "сбора данных о различного рода анкетированиях.";
     str = str+"<br><br>Приложения относится к СПО. С исходным кодом можно ознакомиться на <a href='"+link+"'>GitHub</a>.";
     str=str+"<br><br>Контактная информация для сотрудничества по созданию анкет и обработке анкетных данных: ";
     str=str+"<br>E-mail:</font> <font color='blue'>mendel.vasilij@yandex.ru</font></p>";
-    str=str+"<center>2017 г. Версия 2.1.2.5</center></div></body></html>";
+    str=str+"<center>2019 г. Версия 2.2.1.0</center></div></body></html>";
     brouser->setHtml(str);
     brouser->setOpenExternalLinks(true);
 

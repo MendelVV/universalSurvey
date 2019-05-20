@@ -11,13 +11,15 @@ TableStudentWidget::TableStudentWidget(ClassClass* classC, QWidget *parent) :
    insertColumn(0);
    insertColumn(1);
    insertColumn(2);
+   insertColumn(3);
    setColumnWidth(0,10*x);//задали ширину нулевой колонки
    setColumnWidth(1,20*x);//задали ширину первой колонки
-   setColumnWidth(2,10*x);//задали ширину второй колонки
+   setColumnWidth(2,5*x);//задали ширину второй колонки
+   setColumnWidth(3,5*x);
    QStringList lst;
    QString typeGr = cls->getSetting()->getTypeGr().split(";")[0].trimmed().toLower();
    typeGr = cls->getSetting()->toFirstUpper(typeGr);
-   lst<<"Код"<<"ФИО"<<typeGr;
+   lst<<"Код"<<"ФИО"<<typeGr<<"Полнота";
    setHorizontalHeaderLabels(lst);
    int n = cls->count;
    QVector<StudentClass*> vec = cls->getAllStudents();
@@ -42,6 +44,45 @@ void TableStudentWidget::addRow(StudentClass *stud){
     setItem(n,1,item);
     item = new QTableWidgetItem(cls->getNumber());
     setItem(n,2,item);
+
+/*    qDebug()<<"pre get maked";
+    QMap<QString, QString> mapMaked = stud->getMaked();
+    QList<QString> keys = mapMaked.uniqueKeys();
+    double total = 0;
+    double completed = 0;
+    qDebug()<<keys;
+
+    foreach(QString key, keys){
+        qDebug()<<"key ="<<key<<mapMaked[key];
+        if (mapMaked[key]=="0") continue;
+
+        BallsClass* ballC = stud->balls[key];
+        int n = ballC->getSize();
+        total+=n;
+        qDebug()<<"total ="<<total;
+        for (int i=0;i<n;i++){
+            if (ballC->getBall(i)!="") completed++;
+        }
+    }
+    double res = 0;
+    if (total>0){
+        qDebug()<<"last total ="<<total;
+        res = completed/total;
+    }*/
+
+    item = new QTableWidgetItem(doubleToPercent(stud->getCompleteness()));
+    setItem(n,3,item);
+}
+
+QString TableStudentWidget::doubleToPercent(double value){
+    double res = value*100;
+    QString r = QString::number(res);
+    if (r.contains(".")){
+        int pos = r.indexOf(".");
+        r=r.mid(0,pos);
+    }
+    r+="%";
+    return r;
 }
 
 void TableStudentWidget::reprint(){
@@ -63,6 +104,7 @@ void TableStudentWidget::refresh(){
     for (int i=0;i<countRow;i++){
         removeRow(0);
     }
+
     int n = cls->count;
     QVector<StudentClass*> vec = cls->getAllStudents();
     for (int i=0;i<n;i++){
@@ -113,6 +155,8 @@ void TableStudentWidget::slotAddRow(StudentClass *stud, int n){
     setItem(n,1,item);
     item = new QTableWidgetItem(cls->getNumber());
     setItem(n,2,item);
+    item = new QTableWidgetItem(doubleToPercent(stud->getCompleteness()));
+    setItem(n,3,item);
     reprint();
 }
 

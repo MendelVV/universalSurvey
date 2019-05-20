@@ -23,14 +23,19 @@ StudentWidget::~StudentWidget(){
     for (int i=0;i<n;i++){
         delete mapForm[lst[i]];
     }
+    n = mVecEmpty.size();
+    for (int i=0;i<n;i++){
+        delete mVecEmpty[i];
+    }
 }
 
 //=================================================================================================
 void StudentWidget::setForms(){
     double y =((double)GetSystemMetrics(SM_CYSCREEN))/100;
     double x =((double)GetSystemMetrics(SM_CXSCREEN))/100;
-    QTabWidget* tab = new QTabWidget;
-
+    mTab = new QTabWidget;
+    SettingClass* setting = stud->getSetting();
+    qDebug()<<"create tab";
     QMap<QString, QString> mapMaked = stud->getMaked();
 //=============================================================
     QMap<QString, DisciplineClass*> mapM =stud->getSetting()->getDisciplines("MoreData");
@@ -47,49 +52,73 @@ void StudentWidget::setForms(){
             }
             mapForm[lstM[i]]=form;
             setForm(lstM[i]);//вписывем данные
-            LayoutToForm* ltf = new LayoutToForm;
+            QWidget* wgt = new QWidget();
+            mVecEmpty<<wgt;
+            int pos = mTab->addTab(wgt,mapM[lstM[i]]->getNameDiscipline());
+            mMapWgtPos[lstM[i]]=pos;
+/*            LayoutToForm* ltf = new LayoutToForm;
             ltf->addFormData(mapForm[lstM[i]]);
             ScrollWidget* sc = new ScrollWidget(ltf);
-            tab->addTab(sc,mapM[lstM[i]]->getNameDiscipline());
+            tab->addTab(sc,mapM[lstM[i]]->getNameDiscipline());*/
         }
     }
 //============================================
-    QMap<QString, DisciplineClass*> mapD =stud->getSetting()->getDisciplines("Person");
-    QList<QString> lst=mapD.uniqueKeys();
+
+//    QMap<QString, DisciplineClass*> mapD = stud->getSetting()->getDisciplines("Person");
+//    QList<QString> lst=mapD.uniqueKeys();
+
+    QVector<DisciplineClass*> lst = stud->getSetting()->getVecDisciplines("Person");
     for (int i=0;i<lst.count();i++){
-        if (mapMaked[lst[i]]=="1"){//если он писал эту анкету
+        qDebug()<<lst[i]->getNameDiscipline();
+        DisciplineClass* dsp = lst[i];
+//    foreach (DisciplineClass* dsp, lst){
+//        if (mapMaked[lst[i]]=="1"){//если он писал эту анкету
+//            QString formName = lst[i];
+        QString dspName =  setting->toFirstUpper(dsp->getNameSystem());
+        if (mapMaked[dspName]=="1"){
             form = new FormPlusData;
             if (stud->getSetting()->getType()=="Вход"){
-                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/enter/Form"+lst[i]+".cfpoq");
+                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/enter/Form"+dspName+".cfpoq");
             }else if (stud->getSetting()->getType()=="Выход"){
-                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/exit/Form"+lst[i]+".cfpoq");
+                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/exit/Form"+dspName+".cfpoq");
             }else{
-                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/other/Form"+lst[i]+".cfpoq");
+                form->readFormPlusData(QCoreApplication::applicationDirPath()+"/other/Form"+dspName+".cfpoq");
             }
 
-            mapForm[lst[i]]=form;
-            setForm(lst[i]);//вписывем данные
-            LayoutToForm* ltf = new LayoutToForm;
+//            mapForm[lst[i]]=form;
+            mapForm[dspName]=form;
+            //setForm(lst[i]);//вписывем данные
+            setForm(dspName);//вписывем данные
+            QWidget* wgt = new QWidget();
+            mVecEmpty<<wgt;
+//            int pos = mTab->addTab(wgt,mapD[lst[i]]->getNameDiscipline());
+            int pos = mTab->addTab(wgt,dsp->getNameDiscipline());
+            //mMapWgtPos[lst[i]]=pos;
+            mMapWgtPos[dspName]=pos;
+/*            LayoutToForm* ltf = new LayoutToForm;
             ltf->addFormData(mapForm[lst[i]]);
             ScrollWidget* sc = new ScrollWidget(ltf);
-            tab->addTab(sc,mapD[lst[i]]->getNameDiscipline());
+            tab->addTab(sc,mapD[lst[i]]->getNameDiscipline());*/
         }
     }
 
-    tab->setFixedSize(88*x,79*y);//изменил
+
+    mTab->setFixedSize(88*x,79*y);//изменил
 
     QFont font("Times",14,QFont::Normal);
     QLabel* lblTitle = new QLabel(stud->getFio());
     lblTitle->setFont(font);
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(lblTitle,0);
-    layout->addWidget(tab,1);
+    layout->addWidget(mTab,1);
 
     QWidget* wgt = new QWidget;
     wgt->setLayout(layout);
     QScrollArea* sc = new QScrollArea;
     sc->setWidget(wgt);
     setCentralWidget(sc);
+    slotShow(0);
+    connect(mTab,SIGNAL(currentChanged(int)),this,SLOT(slotShow(int)));
 }
 //===================================================================================
 
@@ -146,6 +175,7 @@ void StudentWidget::slotClose(){
 }
 
 void StudentWidget::slotSaveAndClose(){
+    mTab->setCurrentIndex(0);//костыль
     slotSaveThis();
     slotClose();
     stud->closedView(stud);
@@ -165,8 +195,8 @@ void StudentWidget::slotSave(){
 //берем все предменты которые заполняются индивидуально
     QList<QString> lst = stud->getSetting()->getDisciplines("Person").uniqueKeys();
     lst<<stud->getSetting()->getDisciplines("MoreData").uniqueKeys();
-    for (int i=0;i<lst.count();i++){
-        if (stud->getMaked(lst[i])=="1"){
+    for (int i=0;i<lst.count();i++){    
+        if (stud->getMaked(lst[i])=="1" && mMapWgt.contains(lst[i])){
             int n = stud->balls[lst[i]]->getSize();//количество вопросов в анкете
             for (int j=0;j<n;j++){
                 QString str = "fldQ_"+QString::number(j+1);//берем название каждого последующего вопроса
@@ -210,3 +240,19 @@ void StudentWidget::slotSave(){
     }
 }
 
+void StudentWidget::slotShow(int n){
+    //нужно знать какую форму вставляем и из какой части
+    if (!mMapWgtPos.values().contains(n)) return;
+    QString str = mMapWgtPos.key(n);
+    if (!mMapWgt.contains(str) && mapForm.contains(str)){
+        QString title = mTab->tabText(n);
+
+        LayoutToForm* ltf = new LayoutToForm;
+        ltf->addFormData(mapForm[str]);
+        ScrollWidget* sc = new ScrollWidget(ltf);
+        mTab->insertTab(n,sc,title);
+        mMapWgt[str]=sc;
+        mTab->setCurrentWidget(sc);
+        mTab->removeTab(n+1);
+    }
+}

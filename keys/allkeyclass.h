@@ -19,6 +19,7 @@ public:
 private:
     SurveyKeysClass* mSurvKey;
     QMap<int, QuestionKey*> mMapKeys;
+    QMap<int, double> mMapMax;//словарь максимальных баллов
     double mMaxBall;
 };
 

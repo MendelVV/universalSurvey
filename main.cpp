@@ -33,8 +33,6 @@ int main(int argc, char *argv[])
     MainWindow mw;
     mw.showMaximized();
 
-
-
 //    SettingWidget* sw = new SettingWidget(new SettingClass("open"));
 //    sw->showMaximized();
     return a.exec();

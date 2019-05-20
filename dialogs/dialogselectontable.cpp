@@ -80,25 +80,23 @@ void DialogSelectOnTable::refresh(){
 }
 
 int DialogSelectOnTable::searchRow(QString code){
-    int pos = mVecData.size()/2;
-    int step = pos;
-    while (step>1){
-        if (mVecData.size()<=pos) break;
-        if (mVecData[pos][0].length()<code.length()){
-            break;
-        }
-        QString val = mVecData[pos][0].left(code.length());
-        step = (step+step%2)/2;
-        if (val<code){
-            pos=pos+step;
-        }else if (val>code){
-            pos=pos-step;
-        }else{
-            //совпали
-            break;
-        }
+    int pos = 0;
+    int low = 0;
+    int hight = mVecData.size()-1;
 
+    while (low<=hight){
+        int mid = (low+hight)/2;
+        pos = mid;
+        QString val = mVecData[mid][0].left(code.length());
+        if (val>code){
+            hight=mid-1;
+        }else if(val<code){
+            low=mid+1;
+        }else{
+            break;
+        }
     }
+
     //известно примерное положение
     return pos;
 }

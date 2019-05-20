@@ -8,7 +8,7 @@ QT       += core gui xml sql axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-VERSION = 2.1.2.6
+VERSION = 2.2.1.0
 RC_ICONS = tasks.ico
 
 TARGET = universalSurvey
@@ -56,7 +56,8 @@ SOURCES += main.cpp \
     keys/allkeyclass.cpp \
     dialogs/dialogselectonlist.cpp \
     filehelper.cpp \
-    keys/resultsdata.cpp
+    keys/resultsdata.cpp \
+    dialogs/dialogattention.cpp
 
 HEADERS  += \
     dialogs/dialogaddclass.h \
@@ -85,7 +86,8 @@ HEADERS  += \
     keys/allkeyclass.h \
     dialogs/dialogselectonlist.h \
     filehelper.h \
-    keys/resultsdata.h
+    keys/resultsdata.h \
+    dialogs/dialogattention.h
 
 RESOURCES += \
     resource.qrc

@@ -16,6 +16,7 @@
 #include "dialogs/dialogselectonlist.h"
 #include "keys/keyhelper.h"
 #include "dialogs/errormessage.h"
+#include "dialogs/dialogattention.h"
 
 class ClassWidget : public QMainWindow
 {
@@ -34,13 +35,14 @@ protected:
     QMap<QString, FormPlusData*> mapForm;
     virtual void closeEvent(QCloseEvent *);
     QTabWidget* tab;
-    TableStudentWidget* tsw;
+    TableStudentWidget* tsw=0;
 
     QAction* actSave;
     QAction* actAddStudent;
     QAction* actClose;
     QAction* actToExcel;
     QAction* actResults;
+    QAction* actUpdateCompleted;
     void setActMenu();
 
     QAction* actAddMainForm;
@@ -54,6 +56,12 @@ protected:
     void setForm(QString str);
     void setFormClassed(QString str);
 
+    QMap<QString, QWidget*> mMapWgt;//словарь уже добавленых виджетов
+    QMap<QString, int> mMapWgtPos;//словарь их позиций
+    ScrollWidget* mListWgt=0;
+    QVector<QWidget*> mVecEmpty;
+
+
 signals:
     void closed();
     void signalOpenStudent(StudentClass*);
@@ -62,6 +70,9 @@ signals:
     void signalSave();
 
 public slots:
+
+    void slotShow(int);
+
     void slotClose();
     void slotSaveAndClose();
     void slotAddStudent();
@@ -81,6 +92,8 @@ public slots:
     void slotToExcel();
     void slotToExcelWindows();
     void slotResults();
+
+    void slotUpdateCompleted();
 };
 
 #endif // CLASSWIDGET_H

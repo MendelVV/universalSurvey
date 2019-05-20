@@ -19,6 +19,8 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void contextMenuEvent(QContextMenuEvent *ce);
+private:
+    QString doubleToPercent(double value);
 signals:
     void signalOpenStudent(StudentClass*);
 public slots:

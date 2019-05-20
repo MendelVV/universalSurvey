@@ -32,10 +32,15 @@ ClassWidget::~ClassWidget(){
     for (int i=0;i<n;i++){
         delete mapForm[lst[i]];
     }
+    n = mVecEmpty.size();
+    for (int i=0;i<n;i++){
+        delete mVecEmpty[i];
+    }
 }
 
 void ClassWidget::setEnterForm(){
     tab = new QTabWidget;
+    connect(tab,SIGNAL(currentChanged(int)),this,SLOT(slotShow(int)));
     if (mode==0){
         tab->setFixedSize(88*x,79*y);//изменил
     }
@@ -133,6 +138,8 @@ void ClassWidget::setEnterForm(){
         menuBar()->addAction(actResults);
         //    menuBar()->addAction(actToExcel);
     }
+    menuBar()->addSeparator();
+    menuBar()->addAction(actUpdateCompleted);
 
 
 }
@@ -156,6 +163,9 @@ void ClassWidget::setActMenu(){
 
     actResults = new QAction("Результаты",0);
     connect(actResults,SIGNAL(triggered(bool)),this,SLOT(slotResults()));
+
+    actUpdateCompleted = new QAction("Процент заполнения",0);
+    connect(actUpdateCompleted,SIGNAL(triggered(bool)),this,SLOT(slotUpdateCompleted()));
 }
 
 void ClassWidget::setActAddForm(){
@@ -171,6 +181,7 @@ void ClassWidget::setFormMainEnter(){
     formPData->readFormPlusData(QCoreApplication::applicationDirPath()+"/other/FormList.cfpoq");
     mapForm["FormList"]=formPData;
     QMap<QString,DisciplineClass*> mapM = setting->getDisciplines("MoreData");
+
 //==============================================
     QList<QString> lstM=mapM.uniqueKeys();//список форм
     //вставляем ячейки анкет
@@ -186,11 +197,16 @@ void ClassWidget::setFormMainEnter(){
 //==============================================
 
     QMap<QString,DisciplineClass*> mapD = setting->getDisciplines("Studented");
-    QList<QString> lstF=mapD.uniqueKeys();//список форм
+    QVector<DisciplineClass*> vecF = setting->getVecDisciplines("Studented");
+    QList<QString> lstF;
+//    QList<QString> lstF=mapD.uniqueKeys();//список форм
     //вставляем ячейки анкет
-    for (int i=0;i<lstF.count();i++){
-        QString nm = lstF[i].mid(0,1).toUpper()+lstF[i].mid(1);
-        CellPlusClass* cell = new CellPlusClass("lbl"+nm, "MultyLabel", "Выполнение работы \""+mapD[lstF[i]]->getNameDiscipline()+"\"", 0, 5+i+lstM.count(), 6, 15);
+    for (int i=0;i<vecF.count();i++){
+        lstF<<mapD.key(vecF[i]);//->getNameSystem();
+        //QString nm = lstF[i].mid(0,1).toUpper()+lstF[i].mid(1);
+        QString nm = setting->toFirstUpper(vecF[i]->getNameSystem());
+//        CellPlusClass* cell = new CellPlusClass("lbl"+nm, "MultyLabel", "Выполнение работы \""+mapD[lstF[i]]->getNameDiscipline()+"\"", 0, 5+i+lstM.count(), 6, 15);
+        CellPlusClass* cell = new CellPlusClass("lbl"+nm, "MultyLabel", "Выполнение работы \""+vecF[i]->getNameDiscipline()+"\"", 0, 5+i+lstM.count(), 6, 15);
         mapForm["FormList"]->addCell(cell);
         cell = new CellPlusClass("cmb"+nm, "Combobox", "", 1, 5+i+lstM.count(), 6, 5);
         cell->setList(QStringList()<<"0"<<"1");
@@ -241,18 +257,18 @@ void ClassWidget::setFormMainEnter(){
             }
         }
     }
-    QWidget* wgt;
-    if (mode==0){
+
+    QWidget* wgt = new QWidget;
+    mVecEmpty<<wgt;
+/*    if (mode==0){
         LayoutToForm* ltf = new LayoutToForm;
         ltf->addFormData(mapForm["FormList"]);
         ScrollWidget* sc = new ScrollWidget(ltf);
         wgt=sc;
-    }else if(mode==1){
-/*        TableFormData* tbForm = new TableFormData(mapForm["FormList"]);
-        tbForm->setFixedSize(87*x,79*y);
-        wgt = (QWidget*) tbForm;*/
-    }
-    tab->addTab(wgt,"Основные данные");
+    }*/
+
+    int pos = tab->addTab(wgt,"Основные данные");
+    mMapWgtPos["FormList"]=pos;
 }
 
 void ClassWidget::setForm(QString str){
@@ -311,11 +327,14 @@ void ClassWidget::setForm(QString str){
         }
     }
 
-    QWidget* wgt;
+    QWidget* wgt = new QWidget();
 
-    TableFormWidget* tbForm = new TableFormWidget(mapForm[str]);
-    tbForm->setFixedSize(87*x,75*y);
-    wgt = (QWidget*) tbForm;
+//    TableFormWidget* tbForm = new TableFormWidget(mapForm[str]);
+//    tbForm->setFixedSize(87*x,75*y);
+//    wgt = (QWidget*) tbForm;
+    mVecEmpty<<wgt;
+    int p = tab->addTab(wgt,setting->getDiscipline(str)->getNameDiscipline());
+    mMapWgtPos[str]=p;
 /*    if (mode==0){
         LayoutToForm* ltf = new LayoutToForm;
         ltf->addFormData(mapForm[str]);
@@ -330,7 +349,7 @@ void ClassWidget::setForm(QString str){
 //        wgt = (QWidget*) tbForm;
     }*/
 
-    tab->addTab(wgt,setting->getDiscipline(str)->getNameDiscipline());
+
 }
 
 void ClassWidget::setFormClassed(QString nm){
@@ -391,6 +410,7 @@ void ClassWidget::slotClose(){
 }
 
 void ClassWidget::slotSaveAndClose(){
+    tab->setCurrentIndex(0);//костыль
     slotSaveThis();
     slotClose();
 }
@@ -434,6 +454,7 @@ void ClassWidget::slotActivate(){
 void ClassWidget::slotRefreshForms(){
     //tab->removeTab(0);
     slotSaveThis();
+    tsw->refresh();
     int n = tab->count();//количество элементов
     int start = setting->getDisciplines("Classed").count()+1;
     for (int i=start;i<n;i++){
@@ -444,6 +465,11 @@ void ClassWidget::slotRefreshForms(){
         FormPlusData* formD  = mapForm["FormList"];
         mapForm.remove("FormList");
         delete formD;
+        if (mMapWgt.contains("FormList")){
+            QWidget* wgt = mMapWgt["FormList"];
+            mMapWgt.remove("FormList");
+            delete wgt;
+        }
         setFormMainEnter();//добавили форму со списком класса если она есть
     }
 
@@ -453,6 +479,11 @@ void ClassWidget::slotRefreshForms(){
             FormPlusData* formD  = mapForm[lst[i]];
             mapForm.remove(lst[i]);
             delete formD;
+            if (mMapWgt.contains(lst[i])){
+                QWidget* wgt = mMapWgt[lst[i]];
+                mMapWgt.remove(lst[i]);
+                delete wgt;
+            }
             setForm(lst[i]);//добавили форму по имени
         }
     }
@@ -491,7 +522,6 @@ void ClassWidget::slotSaveThis(){
 }
 
 void ClassWidget::slotSave(){
-    qDebug()<<"ClassWidget"<<"slotSave";
 //записываем все изменения по классу
     QString code = form->getCell("txtClassCode")->getValue();
     if (code!="" && form->getCell("txtClassNumber")->getValue()!=""){
@@ -517,6 +547,7 @@ void ClassWidget::slotSave(){
 //данные по классу
     QList<QString> lst = setting->getDisciplines("Classed").uniqueKeys();
     for (int i=0;i<lst.count();i++){
+        if (!mMapWgt.contains(lst[i])) continue;//если не показывали такую форму отпросто пропускаем при сохранении
         int n = cls->classData[lst[i]]->getSize();//количество вопросов в анкете
         for (int j=0;j<n;j++){
             QString str = "fldQ_"+QString::number(j+1);//берем название каждого последующего вопроса
@@ -562,32 +593,32 @@ void ClassWidget::slotSave(){
     int n = cls->count;
     QVector<StudentClass*> vec = cls->getAllStudents();
     lst = setting->getDisciplines("Studented").uniqueKeys()<<setting->getDisciplines("MoreData").uniqueKeys();
-        for (int i=0;i<n;i++){
-            QString code = "_"+vec[i]->getCode();//код ученика
-            if (cls->hasMainForm){
-                vec[i]->setSex(mapForm["FormList"]->getCell("cmbSex"+code)->getValue());
-                vec[i]->setBithday(mapForm["FormList"]->getCell("numDate"+code)->getValue());
+    for (int i=0;i<n;i++){
+        QString code = "_"+vec[i]->getCode();//код ученика
+        if (cls->hasMainForm){
+            vec[i]->setSex(mapForm["FormList"]->getCell("cmbSex"+code)->getValue());
+            vec[i]->setBithday(mapForm["FormList"]->getCell("numDate"+code)->getValue());
 
-                //идем по всем возможным анкетам и работам
-                for (int j=0;j<lst.count();j++){
-                    vec[i]->setMaked(lst[j],mapForm["FormList"]->getCell("cmb"+lst[j]+code)->getValue());
+            //идем по всем возможным анкетам и работам
+            for (int j=0;j<lst.count();j++){
+                vec[i]->setMaked(lst[j],mapForm["FormList"]->getCell("cmb"+lst[j]+code)->getValue());
 
+            }
+        }
+        //по всем имеющимся формам
+        QList<QString> lstF = cls->mapHasForm.uniqueKeys();
+        for (int j=0;j<lstF.count();j++){
+            if (cls->mapHasForm[lstF[j]] && vec[i]->getMaked(lstF[j])=="1" && mMapWgt.contains(lstF[j])){//если такая форма есть и она заполнена для ученика
+                if (mapForm[lstF[j]]->contains("numVariant"+code)){
+                    vec[i]->balls[lstF[j]]->setVariant(mapForm[lstF[j]]->getCell("numVariant"+code)->getValue());
+                }
+                int sz =  vec[i]->balls[lstF[j]]->getSize();
+                for (int jf=0;jf<sz;jf++){
+                    QString nameCell="numNumTask"+QString::number(jf+1)+code;
+                    vec[i]->balls[lstF[j]]->setBall(jf,mapForm[lstF[j]]->getCell(nameCell)->getValue());
                 }
             }
-            //по всем имеющимся формам
-            QList<QString> lstF = cls->mapHasForm.uniqueKeys();
-            for (int j=0;j<lstF.count();j++){
-                if (cls->mapHasForm[lstF[j]] && vec[i]->getMaked(lstF[j])=="1"){//если такая форма есть и она заполнена для ученика
-                    if (mapForm[lstF[j]]->contains("numVariant"+code)){
-                        vec[i]->balls[lstF[j]]->setVariant(mapForm[lstF[j]]->getCell("numVariant"+code)->getValue());
-                    }
-                    int sz =  vec[i]->balls[lstF[j]]->getSize();
-                    for (int jf=0;jf<sz;jf++){
-                        QString nameCell="numNumTask"+QString::number(jf+1)+code;
-                        vec[i]->balls[lstF[j]]->setBall(jf,mapForm[lstF[j]]->getCell(nameCell)->getValue());
-                    }
-                }
-            }
+        }
     }
 }
 
@@ -618,7 +649,6 @@ void ClassWidget::slotToExcel(){
     mapValues["reading_size"]=0;
 
     foreach (StudentClass* std, vecStd){
-        //qDebug()<<std->getFio();
         ExcelCell* cell;
         cell = new ExcelCell(row,4);
         cell->setValue(std->getFio(), ExcelCell::GENERAL);
@@ -805,6 +835,16 @@ void ClassWidget::slotToExcel(){
 }
 
 void ClassWidget::slotResults(){
+    emit signalSave();
+    if (!FileHelper::runTestJar()){
+        DialogAttention* dlgAtt = new DialogAttention;
+        if (dlgAtt->exec()!=QDialog::Accepted){
+            delete dlgAtt;
+            return;
+        }
+        delete dlgAtt;
+    }
+
     //выбираем какие результаты нужны
     //по конкретной работе или по всем
     QVector<QString> vecSurv = KeyHelper::readMaybeLevels();
@@ -830,24 +870,43 @@ void ClassWidget::slotResults(){
     if (dlg->exec()==QDialog::Accepted){
         //чтото выбрали
         int pos = dlg->position;
+        QList<QString> lstForms = cls->mapHasForm.uniqueKeys();//какие формы добавлены
         if (pos<vecSurv.size()){
-            QList<QString> lstForms = cls->mapHasForm.uniqueKeys();//какие формы добавлены
-            qDebug()<<"forms added"<<lstForms;
-            qDebug()<<"select"<<vecSurv[pos];
             if (lstForms.contains(vecSurv[pos])){
                 SurveyKeysClass* surv = KeyHelper::readKeyClass(vecSurv[pos]);
                 KeyHelper::createCharacters(cls, surv);
                 KeyHelper::createPdf(cls, QVector<SurveyKeysClass*>()<<surv);
+                FileHelper::showResults();
             }else{
                 ErrorMessage::showError("Форма анкеты не добавлена!");
             }
         }else{
             KeyHelper::createAllCharacters(cls, KeyHelper::readKeyClasses());
-            qDebug()<<"select ALL";
+            int sz_not=0;
+            for (int i=0;i<vecSurv.size();i++){
+                if (lstForms.contains(vecSurv[i])){
+                    SurveyKeysClass* surv = KeyHelper::readKeyClass(vecSurv[i]);
+                    KeyHelper::createCharacters(cls, surv);
+                    KeyHelper::createPdf(cls, QVector<SurveyKeysClass*>()<<surv);
+                }else{
+                    sz_not++;
+                }
+            }
+            if (sz_not){
+                ErrorMessage::showError("Есть незаполненные анкеты ("+QString::number(sz_not)+")!");
+            }
+            FileHelper::showResults();
         }
 
     }
     delete dlg;
+}
+
+void ClassWidget::slotUpdateCompleted(){
+    slotSave();
+    emit signalSave();
+    tab->setCurrentIndex(0);
+    tsw->refresh();
 }
 
 void ClassWidget::slotToExcelWindows(){
@@ -874,7 +933,6 @@ void ClassWidget::slotToExcelWindows(){
     mapValues["reading_size"]=0;
 
     foreach (StudentClass* std, vecStd){
-        qDebug()<<std->getFio();
         ExcelCell* cell;
         cell = new ExcelCell(row,4);
         cell->setValue(std->getFio(), ExcelCell::GENERAL);
@@ -949,7 +1007,6 @@ void ClassWidget::slotToExcelWindows(){
 
         //русский=====================================================================================
         if (mapMaked["Russian"]=="1"){
-//            qDebug()<<"russian do";
             mapValues["russian_size"]++;
             if (std->balls["Russian"]->getVariant()=="1"){
                 cell = new ExcelCell(row,13);
@@ -966,7 +1023,6 @@ void ClassWidget::slotToExcelWindows(){
 //            mapSheets[8]<<cell;
 
             int sz = std->balls["Russian"]->getSize();
-            qDebug()<<"russian size"<<sz;
             for (int i=0;i<sz;i++){
                 cell = new ExcelCell(row,6+i);
                 bool ok = false;
@@ -976,7 +1032,6 @@ void ClassWidget::slotToExcelWindows(){
                 }else{
                     cell->setValue(std->balls["Russian"]->getBall(i), ExcelCell::GENERAL);
                 }
-                qDebug()<<i+1<<cell->getValue()<<cell->getRow()<<cell->getColumn();
 
                 mapSheets[3]<<cell;
             }
@@ -1043,4 +1098,39 @@ void ClassWidget::slotToExcelWindows(){
     msb->setText("Данные экспортированы!");
     msb->show();
 
+}
+
+void ClassWidget::slotShow(int n){
+
+    if (n==mMapWgtPos["FormList"] && !mMapWgt.contains("FormList") && mapForm.contains("FormList")){
+        LayoutToForm* ltf = new LayoutToForm;
+        ltf->addFormData(mapForm["FormList"]);
+        ScrollWidget* sc = new ScrollWidget(ltf);
+        mMapWgt["FormList"]=sc;
+        tab->insertTab(n,sc,"Основные данные");
+        tab->setCurrentWidget(sc);
+        if (tab->count()>n+1){
+            tab->removeTab(n+1);
+        }
+    }else if(mMapWgtPos.values().contains(n)){
+        //если это один из всех остальных
+        QString str = mMapWgtPos.key(n);
+        if (!mapForm.contains(str) || mMapWgt.contains(str)){
+            //если нет такой формы или виджет уже добавлен
+            return;
+        }
+        TableFormWidget* tbForm = new TableFormWidget(mapForm[str]);
+        tbForm->setFixedSize(87*x,75*y);
+        mMapWgt[str]=tbForm;
+
+        tab->insertTab(n,tbForm,setting->getDiscipline(str)->getNameDiscipline());
+        tab->setCurrentWidget(tbForm);
+        if (tab->count()>n+1){
+            tab->removeTab(n+1);
+        }
+
+        //    TableFormWidget* tbForm = new TableFormWidget(mapForm[str]);
+        //    tbForm->setFixedSize(87*x,75*y);
+        //    wgt = (QWidget*) tbForm;
+    }
 }
