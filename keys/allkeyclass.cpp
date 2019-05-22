@@ -113,6 +113,7 @@ QString AllKeyClass::getLevel(StudentClass* stud){
             int count_min = lstCount[0].toInt();
             int count_max = lstCount[1].toInt();
             double res = (int) checkSolve(balls,start,end,type);
+//            qDebug()<<"res ="<<res<<subLevel->getText();
 
             if (res<count_min || res>count_max){
                 b = false;

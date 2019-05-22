@@ -458,8 +458,9 @@ void KeyHelper::createOnePdf(ClassClass* cls, SurveyKeysClass* survs){
     //создаем файл pdf
     QString pth=QCoreApplication::applicationDirPath();
     //+"/resutls/";
-    QString nm = settingClass->getDiscipline(survs->getSurvey())->getNameDiscipline();
-    QString fileName = pth+"/results/результаты_"+nm+".pdf";
+    SchoolClass* sch = (SchoolClass*) cls->parent();
+    QString nm = sch->getCode()+"_"+cls->getCode()+"_"+settingClass->getDiscipline(survs->getSurvey())->getNameDiscipline();
+    QString fileName = pth+"/results/"+nm+".pdf";
 
     QFont font12("Times New Roman",18);
     QFont font10("Times New Roman",14);

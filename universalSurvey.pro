@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml sql axcontainer
+QT       += core gui xml sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-VERSION = 2.2.1.0
+VERSION = 2.2.1.2
 RC_ICONS = tasks.ico
 
 TARGET = universalSurvey
@@ -50,7 +50,6 @@ SOURCES += main.cpp \
     dialogs/dialogselectontable.cpp \
     dialogs/errormessage.cpp \
     dialogs/dialogclose.cpp \
-    excelfunction.cpp \
     json/jsonhelper.cpp \
     keys/keyhelper.cpp \
     keys/allkeyclass.cpp \
@@ -80,7 +79,6 @@ HEADERS  += \
     dialogs/dialogselectontable.h \
     dialogs/errormessage.h \
     dialogs/dialogclose.h \
-    excelfunction.h \
     json/jsonhelper.h \
     keys/keyhelper.h \
     keys/allkeyclass.h \

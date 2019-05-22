@@ -4,6 +4,7 @@
 #include "json/jsonhelper.h"
 #include "keys_data/surveykeysclass.h"
 #include <QCoreApplication>
+#include "schoolclass.h"
 #include "classclass.h"
 #include "keys/allkeyclass.h"
 #include "filehelper.h"

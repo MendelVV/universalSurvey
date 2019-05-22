@@ -49,7 +49,7 @@ void ClassWidget::setEnterForm(){
     QString typeGr = setting->getTypeGr().split(";")[0].trimmed().toLower();
     typeGr = setting->toFirstUpper(typeGr);
     QLabel* lblTitle = new QLabel(typeGr);
-    lblTitle->setFont(font);    
+    lblTitle->setFont(font);
 
     typeGr = setting->getTypeGr().split(";")[1].trimmed().toLower();
     form = new FormPlusData;
@@ -136,7 +136,6 @@ void ClassWidget::setEnterForm(){
     if (KeyHelper::readMaybeLevels().size()>0){
         menuBar()->addSeparator();
         menuBar()->addAction(actResults);
-        //    menuBar()->addAction(actToExcel);
     }
     menuBar()->addSeparator();
     menuBar()->addAction(actUpdateCompleted);
@@ -157,9 +156,6 @@ void ClassWidget::setActMenu(){
 
     actClose = new QAction("Сохранить и закрыть",0);
     connect(actClose,SIGNAL(triggered()),this,SLOT(slotSaveAndClose()));
-
-    actToExcel = new QAction("Результаты в Excel",0);
-    connect(actToExcel,SIGNAL(triggered(bool)),this,SLOT(slotToExcelWindows()));
 
     actResults = new QAction("Результаты",0);
     connect(actResults,SIGNAL(triggered(bool)),this,SLOT(slotResults()));
@@ -622,217 +618,6 @@ void ClassWidget::slotSave(){
     }
 }
 
-void ClassWidget::slotToExcel(){
-    //берем файл excel И копируем его в папку с программой в temp
-    QFile file(":/resource/results.xlsx");
-//    QCoreApplication::applicationDirPath()+"/excel"
-    QString fileName = QCoreApplication::applicationDirPath()+"/temp";
-    QDir().mkdir(fileName);
-    fileName+="/results.xlsx";
-    file.copy(fileName);
-    Excel* excel = new Excel(fileName);
-
-    excel->createNewFile(fileName+".xlsx");
-    return;
-    QVector<StudentClass*> vecStd = cls->getAllStudents();
-    int row = 25;
-
-    QMap<int, QVector<ExcelCell*> > mapSheets;
-    for (int i=1;i<11;i++){
-        QVector<ExcelCell*> vecCells;
-        mapSheets[i]=vecCells;
-    }
-    QMap<QString, int> mapValues;
-
-    mapValues["math_size"]=0;
-    mapValues["russian_size"]=0;
-    mapValues["reading_size"]=0;
-
-    foreach (StudentClass* std, vecStd){
-        ExcelCell* cell;
-        cell = new ExcelCell(row,4);
-        cell->setValue(std->getFio(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-//        row++;
-//        continue;
-
-        cell = new ExcelCell(row,3);
-        cell->setValue(std->getCode(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-
-        cell = new ExcelCell(row,9);
-        cell->setValue(std->getSex(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-        QString b = std->getBithday();
-        QStringList bth = b.split(".");
-        if (bth.size()==3){
-            cell = new ExcelCell(row,10);
-            cell->setValue(bth[1], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-            cell = new ExcelCell(row,11);
-            cell->setValue(bth[2], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }else if(bth.size()==2){
-            cell = new ExcelCell(row,10);
-            cell->setValue(bth[0], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-            cell = new ExcelCell(row,11);
-            cell->setValue(bth[1], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-
-        QMap<QString, QString> mapMaked = std->getMaked();
-
-        //математика=====================================================================================
-        if (mapMaked["Math"]=="1"){
-            mapValues["math_size"]++;
-            if (std->balls["Math"]->getVariant()=="1"){
-                cell = new ExcelCell(row,12);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Math"]->getVariant()=="2"){
-                cell = new ExcelCell(row,12);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-            cell = new ExcelCell(row,1);
-            cell->setValue("1", ExcelCell::NUMBER);
-            mapSheets[2]<<cell;
-            mapSheets[6]<<cell;
-            //с 6
-            int sz = std->balls["Math"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Math"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Math"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                    cell->setValue(std->balls["Math"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[2]<<cell;
-            }
-        }else{
-            cell = new ExcelCell(row,12);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-
-        }
-        //============================================================================================
-
-        //русский=====================================================================================
-        if (mapMaked["Russian"]=="1"){
-            mapValues["russian_size"]++;
-            if (std->balls["Russian"]->getVariant()=="1"){
-                cell = new ExcelCell(row,13);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Russian"]->getVariant()=="2"){
-                cell = new ExcelCell(row,13);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-            cell = new ExcelCell(row,1);
-            cell->setValue("1", ExcelCell::NUMBER);
-            mapSheets[3]<<cell;
-            mapSheets[8]<<cell;
-
-            int sz = std->balls["Russian"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Russian"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Russian"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                    cell->setValue(std->balls["Russian"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[3]<<cell;
-            }
-
-        }else{
-            cell = new ExcelCell(row,13);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-        //============================================================================================
-
-        //чтение=====================================================================================
-        if (mapMaked["Reading"]=="1"){
-            mapValues["reading_size"]++;
-            if (std->balls["Reading"]->getVariant()=="1"){
-                cell = new ExcelCell(row,14);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Reading"]->getVariant()=="2"){
-                cell = new ExcelCell(row,14);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-            cell = new ExcelCell(row,1);
-            cell->setValue("1", ExcelCell::NUMBER);
-
-            mapSheets[4]<<cell;
-            mapSheets[10]<<cell;
-
-            int sz = std->balls["Reading"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Reading"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Reading"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                    cell->setValue(std->balls["Reading"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[4]<<cell;
-            }
-        }else{
-            cell = new ExcelCell(row,14);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-        //============================================================================================
-
-        row++;
-    }
-    ExcelCell* cell;
-    cell = new ExcelCell(6,6);
-    cell->setValue(QString::number(mapValues["math_size"]), ExcelCell::NUMBER);
-    mapSheets[2]<<cell;
-    mapSheets[6]<<cell;
-    cell = new ExcelCell(6,6);
-    cell->setValue(QString::number(mapValues["russian_size"]), ExcelCell::NUMBER);
-    mapSheets[3]<<cell;
-    mapSheets[8]<<cell;
-    cell = new ExcelCell(6,5);
-    cell->setValue(QString::number(mapValues["reading_size"]), ExcelCell::NUMBER);
-    mapSheets[4]<<cell;
-    mapSheets[10]<<cell;
-
-    cell = new ExcelCell(23,1);
-    cell->setValue(QString::number(vecStd.size()), ExcelCell::NUMBER);
-    mapSheets[6]<<cell;
-    mapSheets[8]<<cell;
-    mapSheets[10]<<cell;
-
-    for (int i=1;i<11;i++){
-        excel->putCells(mapSheets[i],i);
-    }
-
-    QFile fileDel(fileName);
-    fileDel.remove();
-
-    fileName = QCoreApplication::applicationDirPath()+"/Результаты_"+cls->getCode()+".xlsx";
-    excel->createNewFile(fileName);
-   // QUrl url("file:/"+fileName);
-   // QDesktopServices::openUrl(url);
-
-    delete excel;
-}
 
 void ClassWidget::slotResults(){
     emit signalSave();
@@ -848,7 +633,7 @@ void ClassWidget::slotResults(){
     //выбираем какие результаты нужны
     //по конкретной работе или по всем
     QVector<QString> vecSurv = KeyHelper::readMaybeLevels();
-    //получили системные имена всех возможных анкет для клторые есть уровни
+    //получили системные имена всех возможных анкет для которых есть уровни
     if (vecSurv.size()==0){
         ErrorMessage::showError("Нет данных об уровнях освоения!");
         return;
@@ -886,7 +671,7 @@ void ClassWidget::slotResults(){
             for (int i=0;i<vecSurv.size();i++){
                 if (lstForms.contains(vecSurv[i])){
                     SurveyKeysClass* surv = KeyHelper::readKeyClass(vecSurv[i]);
-                    KeyHelper::createCharacters(cls, surv);
+                    //KeyHelper::createCharacters(cls, surv);
                     KeyHelper::createPdf(cls, QVector<SurveyKeysClass*>()<<surv);
                 }else{
                     sz_not++;
@@ -907,197 +692,6 @@ void ClassWidget::slotUpdateCompleted(){
     emit signalSave();
     tab->setCurrentIndex(0);
     tsw->refresh();
-}
-
-void ClassWidget::slotToExcelWindows(){
-    //берем файл excel И копируем его в папку с программой в temp
-    QFile file(":/resource/results.xlsx");
-//    QCoreApplication::applicationDirPath()+"/excel"
-    QString fileName = QCoreApplication::applicationDirPath();
-    fileName+="/Результаты.xlsx";
-    file.copy(fileName);
-
-
-    QVector<StudentClass*> vecStd = cls->getAllStudents();
-    int row = 25;
-
-    QMap<int, QVector<ExcelCell*> > mapSheets;
-    for (int i=1;i<5;i++){
-        QVector<ExcelCell*> vecCells;
-        mapSheets[i]=vecCells;
-    }
-    QMap<QString, int> mapValues;
-
-    mapValues["math_size"]=0;
-    mapValues["russian_size"]=0;
-    mapValues["reading_size"]=0;
-
-    foreach (StudentClass* std, vecStd){
-        ExcelCell* cell;
-        cell = new ExcelCell(row,4);
-        cell->setValue(std->getFio(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-//        row++;
-//        continue;
-
-        cell = new ExcelCell(row,3);
-        cell->setValue(std->getCode(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-
-        cell = new ExcelCell(row,9);
-        cell->setValue(std->getSex(), ExcelCell::GENERAL);
-        mapSheets[1]<<cell;
-        QString b = std->getBithday();
-        QStringList bth = b.split(".");
-        if (bth.size()==3){
-            cell = new ExcelCell(row,10);
-            cell->setValue(bth[1], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-            cell = new ExcelCell(row,11);
-            cell->setValue(bth[2], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }else if(bth.size()==2){
-            cell = new ExcelCell(row,10);
-            cell->setValue(bth[0], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-            cell = new ExcelCell(row,11);
-            cell->setValue(bth[1], ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-
-        QMap<QString, QString> mapMaked = std->getMaked();
-
-        //математика=====================================================================================
-        if (mapMaked["Math"]=="1"){
-            mapValues["math_size"]++;
-            if (std->balls["Math"]->getVariant()=="1"){
-                cell = new ExcelCell(row,12);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Math"]->getVariant()=="2"){
-                cell = new ExcelCell(row,12);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-            //cell = new ExcelCell(row,1);
-            //cell->setValue("1", ExcelCell::NUMBER);
-  //          mapSheets[2]<<cell;
-  //          mapSheets[6]<<cell;
-            //с 6
-            int sz = std->balls["Math"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Math"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Math"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                    cell->setValue(std->balls["Math"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[2]<<cell;
-            }
-        }else{
-            cell = new ExcelCell(row,12);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-
-        }
-        //============================================================================================
-
-        //русский=====================================================================================
-        if (mapMaked["Russian"]=="1"){
-            mapValues["russian_size"]++;
-            if (std->balls["Russian"]->getVariant()=="1"){
-                cell = new ExcelCell(row,13);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Russian"]->getVariant()=="2"){
-                cell = new ExcelCell(row,13);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-//            cell = new ExcelCell(row,1);
-//            cell->setValue("1", ExcelCell::NUMBER);
-//            mapSheets[3]<<cell;
-//            mapSheets[8]<<cell;
-
-            int sz = std->balls["Russian"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Russian"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Russian"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                    cell->setValue(std->balls["Russian"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[3]<<cell;
-            }
-
-        }else{
-            cell = new ExcelCell(row,13);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-        //============================================================================================
-
-        //чтение=====================================================================================
-        if (mapMaked["Reading"]=="1"){
-            mapValues["reading_size"]++;
-            if (std->balls["Reading"]->getVariant()=="1"){
-                cell = new ExcelCell(row,14);
-                cell->setValue("1", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }else if(std->balls["Reading"]->getVariant()=="2"){
-                cell = new ExcelCell(row,14);
-                cell->setValue("2", ExcelCell::NUMBER);
-                mapSheets[1]<<cell;
-            }
-  //          cell = new ExcelCell(row,1);
-  //          cell->setValue("1", ExcelCell::NUMBER);
-
-  //          mapSheets[4]<<cell;
-  //          mapSheets[10]<<cell;
-
-            int sz = std->balls["Reading"]->getSize();
-            for (int i=0;i<sz;i++){
-                cell = new ExcelCell(row,6+i);
-                bool ok = false;
-                std->balls["Reading"]->getBall(i).toDouble(&ok);
-                if (ok){
-                   cell->setValue(std->balls["Reading"]->getBall(i), ExcelCell::NUMBER);
-                }else{
-                   cell->setValue(std->balls["Reading"]->getBall(i), ExcelCell::GENERAL);
-                }
-
-                mapSheets[4]<<cell;
-            }
-        }else{
-            cell = new ExcelCell(row,14);
-            cell->setValue("0", ExcelCell::NUMBER);
-            mapSheets[1]<<cell;
-        }
-        //============================================================================================
-
-        row++;
-    }
-
-    ExcelFunction* excel = new ExcelFunction(fileName);
-    for (int i=1;i<5;i++){
-        excel->setVisible(true);
-        excel->setSheet(i);
-        excel->setVisible(false);
-        excel->insertCells(mapSheets[i]);
-      //  excel->putCells(mapSheets[i],i);
-    }
-    excel->setVisible(true);
-    delete excel;
-    QMessageBox* msb = new QMessageBox;
-    msb->setText("Данные экспортированы!");
-    msb->show();
-
 }
 
 void ClassWidget::slotShow(int n){

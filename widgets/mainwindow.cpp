@@ -11,13 +11,19 @@ MainWindow::MainWindow(QWidget *parent) :
     y =((double)GetSystemMetrics(SM_CYSCREEN))/100;
     x =((double)GetSystemMetrics(SM_CXSCREEN))/100;
     QHBoxLayout* layout = new QHBoxLayout;
-    nav->setFixedSize(6*x,88*y);
-    mdiArea->setFixedSize(92*x,88*y);
+    nav->setFixedSize(6*x,86.5*y);
+    mdiArea->setFixedSize(91.5*x,86.5*y);
+
     layout->addWidget(nav,0,Qt::AlignTop);
     layout->addWidget(mdiArea,0,Qt::AlignTop);
+
     QWidget* wgt = new QWidget;
     wgt->setLayout(layout);
-    setCentralWidget(wgt);
+
+    QScrollArea* sc = new QScrollArea();
+    sc->setWidget(wgt);
+
+    setCentralWidget(sc);
 
     QMenu* menu = new QMenu("&Файл");
     setActMenu();
@@ -31,12 +37,15 @@ MainWindow::MainWindow(QWidget *parent) :
     menu->addAction(actExit);
     menuBar()->addMenu(menu);
     menuBar()->addSeparator();
+    menuBar()->addAction(actMakeResults);
+    menuBar()->addSeparator();
     menuBar()->addAction(actAuthor);
 
     QPalette palMain;
     QColor color(245, 245, 250);
     palMain.setColor(QPalette::Background,color);
     setPalette(palMain);
+
 }
 
 
@@ -54,6 +63,9 @@ void MainWindow::setActMenu(){
 
     actExit = new QAction ("Выйти",0);
     connect(actExit, SIGNAL(triggered()),this,SLOT(close()));
+
+    actMakeResults = new QAction("Результаты",0);
+    connect(actMakeResults,SIGNAL(triggered()),this,SLOT(slotMakeResults()));
 
     actAuthor = new QAction("О программе",0);
     connect(actAuthor,SIGNAL(triggered(bool)),this,SLOT(slotAuthor()));
@@ -182,6 +194,29 @@ void MainWindow::slotCloseSubWindow(){
     delete pview;
 }
 
+void MainWindow::slotMakeResults(){
+    //открываем все файлы
+    QStringList listFiles = QFileDialog::getOpenFileNames(this,"Выберите файлы","","");
+    QVector<QString> vecSurv = KeyHelper::readMaybeLevels();
+    foreach (QString fileName, listFiles){
+        if (fileName.right(4)=="scpd"){
+            SchoolClass* sch = new SchoolClass;
+            sch->readSchoolClass(fileName);
+            QVector<ClassClass*> vecCls = sch->getAllClasses();
+            foreach (ClassClass* cls, vecCls){
+                QList<QString> lstForms = cls->mapHasForm.uniqueKeys();//какие формы добавлены
+                KeyHelper::createAllCharacters(cls, KeyHelper::readKeyClasses());
+                for (int i=0;i<vecSurv.size();i++){
+                    if (lstForms.contains(vecSurv[i])){
+                        SurveyKeysClass* surv = KeyHelper::readKeyClass(vecSurv[i]);
+                        KeyHelper::createPdf(cls, QVector<SurveyKeysClass*>()<<surv);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::slotActivateSubWindow(){
     QMdiSubWindow* subWindow = (QMdiSubWindow*) sender()->parent();
     mdiArea->setActiveSubWindow(subWindow);
@@ -194,13 +229,13 @@ void MainWindow::slotAuthor(){
 
     brouser->setFont(font);
     brouser->setWindowTitle("О программе");
-    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.2.1.0</font></center>";
+    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.2.1.2</font></center>";
     str = str+"<p align='justify'><font color='black'>Приложение разработано Менделем В.В. на основе библиотеки QT (версия 5.5.1) и предназначено для offline "
                   "сбора данных о различного рода анкетированиях.";
     str = str+"<br><br>Приложения относится к СПО. С исходным кодом можно ознакомиться на <a href='"+link+"'>GitHub</a>.";
     str=str+"<br><br>Контактная информация для сотрудничества по созданию анкет и обработке анкетных данных: ";
     str=str+"<br>E-mail:</font> <font color='blue'>mendel.vasilij@yandex.ru</font></p>";
-    str=str+"<center>2019 г. Версия 2.2.1.0</center></div></body></html>";
+    str=str+"<center>2019 г. Версия 2.2.1.2</center></div></body></html>";
     brouser->setHtml(str);
     brouser->setOpenExternalLinks(true);
 

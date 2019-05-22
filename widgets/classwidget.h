@@ -11,8 +11,6 @@
 #include "tableformdata.h"
 #include "scrollwidget.h"
 #include "settingclass.h"
-#include "excel_main/excel.h"
-#include "excelfunction.h"
 #include "dialogs/dialogselectonlist.h"
 #include "keys/keyhelper.h"
 #include "dialogs/errormessage.h"
@@ -40,7 +38,6 @@ protected:
     QAction* actSave;
     QAction* actAddStudent;
     QAction* actClose;
-    QAction* actToExcel;
     QAction* actResults;
     QAction* actUpdateCompleted;
     void setActMenu();
@@ -89,8 +86,6 @@ public slots:
     void slotSave();
     void slotDulicate(QString);
 
-    void slotToExcel();
-    void slotToExcelWindows();
     void slotResults();
 
     void slotUpdateCompleted();

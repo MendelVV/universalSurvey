@@ -24,6 +24,8 @@ protected:
     QAction* actSave;
     QAction* actExit;
 
+    QAction* actMakeResults;
+
     QAction* actAuthor;
 
     void setActMenu();
@@ -43,6 +45,8 @@ public slots:
     void slotCloseSubWindow();
 
     void slotActivateSubWindow();
+
+    void slotMakeResults();
 
     void slotAuthor();
 };

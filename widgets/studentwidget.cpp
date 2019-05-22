@@ -171,6 +171,7 @@ void StudentWidget::setForm(QString nm){
 }
 
 void StudentWidget::slotClose(){
+    mTab->setCurrentIndex(0);//костыль
     emit closed();
 }
 
