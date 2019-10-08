@@ -8,7 +8,7 @@ QT       += core gui xml sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-VERSION = 2.2.1.2
+VERSION = 2.2.1.4
 RC_ICONS = tasks.ico
 
 TARGET = universalSurvey

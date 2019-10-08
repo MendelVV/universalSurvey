@@ -107,10 +107,7 @@ QLineEdit#LabelCell:focus, QLineEdit#LabelCell:hover,QTextEdit#MultyLabelCell:fo
         border: 1px solid #0078d7;
         color: rgba(90,90,90,255);
 }
-QScrollBar, QScrollBar:sub-line, QScrollBar:handle{
-	background-color: rgba(200,200,200,255);
-	border: none;
-}
+
 QTextBrowser, QTextBrowser:hover, QTextBrowser:focus{
         background-color: rgba(250,250,250,255);
         border: 1px solid #0078d7;

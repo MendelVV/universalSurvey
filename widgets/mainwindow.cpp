@@ -229,13 +229,13 @@ void MainWindow::slotAuthor(){
 
     brouser->setFont(font);
     brouser->setWindowTitle("О программе");
-    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.2.1.2</font></center>";
+    QString str = "<html><head><title></title></head><body><div><center><font color='black' size='4'>Сбор анкетых данных 2.2.1.4</font></center>";
     str = str+"<p align='justify'><font color='black'>Приложение разработано Менделем В.В. на основе библиотеки QT (версия 5.5.1) и предназначено для offline "
                   "сбора данных о различного рода анкетированиях.";
     str = str+"<br><br>Приложения относится к СПО. С исходным кодом можно ознакомиться на <a href='"+link+"'>GitHub</a>.";
     str=str+"<br><br>Контактная информация для сотрудничества по созданию анкет и обработке анкетных данных: ";
     str=str+"<br>E-mail:</font> <font color='blue'>mendel.vasilij@yandex.ru</font></p>";
-    str=str+"<center>2019 г. Версия 2.2.1.2</center></div></body></html>";
+    str=str+"<center>2019 г. Версия 2.2.1.4</center></div></body></html>";
     brouser->setHtml(str);
     brouser->setOpenExternalLinks(true);
 

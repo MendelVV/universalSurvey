@@ -542,8 +542,9 @@ void ClassWidget::slotSave(){
 
 //данные по классу
     QList<QString> lst = setting->getDisciplines("Classed").uniqueKeys();
+    qDebug()<<"classed"<<lst;
     for (int i=0;i<lst.count();i++){
-        if (!mMapWgt.contains(lst[i])) continue;//если не показывали такую форму отпросто пропускаем при сохранении
+        //if (!mMapWgt.contains(lst[i])) continue;//если не показывали такую форму отпросто пропускаем при сохранении
         int n = cls->classData[lst[i]]->getSize();//количество вопросов в анкете
         for (int j=0;j<n;j++){
             QString str = "fldQ_"+QString::number(j+1);//берем название каждого последующего вопроса
